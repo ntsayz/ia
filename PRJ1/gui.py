@@ -3,11 +3,12 @@ from game_state import GameState
 from game_controller import GameController
 
 class GUI:
-    def __init__(self, game_state):
+    def __init__(self, game_state : GameState):
         self.game_state = game_state
         pygame.init()
         self.window_size = (1000, 900)
         self.screen = pygame.display.set_mode(self.window_size)
+        self.game_controller = GameController(self.game_state, self)
         self.cell_size = 100
         self.grid_size = self.game_state.board_size  
         self.control_panel_height = 100
@@ -23,13 +24,13 @@ class GUI:
                 pygame.draw.rect(self.screen, cell_color, rect)
 
      
-        self.draw_control_panel(0, 0)  
+        self.draw_control_panel(self.game_controller.current_player, self.game_controller.score)
 
-        self.draw_info_panel(0, 0)
+        self.draw_info_panel(self.game_controller.current_player, self.game_controller.score)
 
     def draw_control_panel(self, current_player, score):
         control_panel_rect = pygame.Rect(0, self.grid_size * self.cell_size, self.window_size[0] - self.info_panel_width, self.control_panel_height)
-        pygame.draw.rect(self.screen, (180, 180, 180), control_panel_rect)
+        pygame.draw.rect(self.screen, (200, 200, 200), control_panel_rect)
         control_text_surface = self.font.render(f'Player Turn: {current_player}', True, (0, 0, 0))
         self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 10))
 
@@ -45,13 +46,12 @@ class GUI:
 
     def main_loop(self):
         running = True
-        game_controller = GameController(self.game_state, self)
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 else:
-                    game_controller.handle_event(event)
+                    self.game_controller.handle_event(event)
 
             pygame.display.flip()
         pygame.quit()

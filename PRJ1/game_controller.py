@@ -12,7 +12,7 @@ class GameController:
 
     def handle_event(self, event):
         # Only handle mouse clicks for human players
-        if event.type == pygame.MOUSEBUTTONDOWN and self.players[self.current_player] == 'Human':
+        if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_mouse_click(event.pos)
 
     def handle_mouse_click(self, pos):
@@ -33,7 +33,6 @@ class GameController:
             # Update the game state with the AI's move
             self.gui.update_game_state(row, col, self.current_player)
             # Switch to the next player after the AI move
-            #pygame.time.wait(400)
             self.switch_player()
 
     def switch_player(self):
@@ -45,6 +44,7 @@ class GameController:
     def check_and_handle_ai_turn(self):
         if self.players[self.current_player] == 'AI':
             # Small delay for AI turn to simulate thinking delay (optional)
+            pygame.time.wait(400)  # Wait for 500 milliseconds
             self.handle_ai_turn()
 
     def update_gui(self):

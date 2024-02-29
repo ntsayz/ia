@@ -5,10 +5,10 @@ class GameController:
     def __init__(self, game_state, gui, player1_type='Human', player2_type='AI'):
         self.game_state = game_state
         self.gui = gui
-        self.current_player = 1  # Start with player 1
-        self.score = 100  # Example score, adjust as needed
+        self.current_player = 1
+        self.score = 100
         self.players = {1: player1_type, 2: player2_type}
-        self.ai = AI()  # AI object for making AI moves
+        self.ai = AI()
 
     def handle_event(self, event):
         # Only handle mouse clicks for human players
@@ -27,6 +27,9 @@ class GameController:
             self.switch_player()
 
     def handle_ai_turn(self):
+        # delay for UX
+        pygame.time.wait(400)
+
         ai_move = self.ai.choose_move(self.game_state)
         if ai_move:
             row, col = ai_move
@@ -44,7 +47,6 @@ class GameController:
     def check_and_handle_ai_turn(self):
         if self.players[self.current_player] == 'AI':
             # Small delay for AI turn to simulate thinking delay (optional)
-            pygame.time.wait(400)  # Wait for 500 milliseconds
             self.handle_ai_turn()
 
     def update_gui(self):

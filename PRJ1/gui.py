@@ -41,8 +41,9 @@ class GUI:
         self.screen.blit(info_text_surface, (self.window_size[0] - self.info_panel_width + 10, 10))
 
     def update_game_state(self, row, col, player):
-        self.game_state.board[row][col] = player  
-        self.draw_board()  # Redraw board to reflect the updated state
+        self.game_state.board[row][col] = player
+        self.draw_board()
+        pygame.display.flip()
 
     def main_loop(self):
         running = True
@@ -55,4 +56,5 @@ class GUI:
 
             pygame.display.flip()
         pygame.quit()
+
 

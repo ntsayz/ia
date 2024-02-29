@@ -6,10 +6,10 @@ class GameLogic:
         return True  
 
     def update_state(self, move):
-        self.state.make_move(move)  # Apply move
+        self.state.make_move(move)
 
     def check_win_condition(self):
         return False  
 
     def get_winner(self):
-        return None  # Determine the winner
+        return None

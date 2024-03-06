@@ -20,11 +20,13 @@ class GameController:
         x, y = pos
         row = y // self.gui.cell_size
         col = x // self.gui.cell_size
+        self.gui.highlight_cell(row, col)
         if 0 <= row < self.gui.grid_size and 0 <= col < self.gui.grid_size:
             # Update the game state with the new move
             self.gui.update_game_state(row, col, self.current_player)
             # After a move, switch to the next player
             self.switch_player()
+        self.game_state.print_board()
 
     def handle_ai_turn(self):
         # delay for UX
@@ -33,10 +35,12 @@ class GameController:
         ai_move = self.ai.choose_move(self.game_state)
         if ai_move:
             row, col = ai_move
+            self.gui.highlight_cell(row, col)
             # Update the game state with the AI's move
             self.gui.update_game_state(row, col, self.current_player)
             # Switch to the next player after the AI move
             self.switch_player()
+        self.game_state.print_board()
 
     def switch_player(self):
         # Switch to the next player

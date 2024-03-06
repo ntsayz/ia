@@ -4,7 +4,8 @@ class GameState:
         self.board = self.initialize_board()
 
     def initialize_board(self):
-        return [[None for _ in range(self.board_size)] for _ in range(self.board_size)]
+        return [[[] for _ in range(self.board_size)] for _ in range(self.board_size)]
+
 
     def make_move(self, move):
         pass
@@ -17,5 +18,10 @@ class GameState:
     
     # In GameState class
     def update_cell(self, row, col, value):
-        self.board[row][col] = value
+        self.board[row][col].append(value)
+
+    def print_board(self):
+        for row in self.board:
+            print('|' + '|'.join([str(cell) if cell is not None else ' ' for cell in row]) + '|')
+        print()
 

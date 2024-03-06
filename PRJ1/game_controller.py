@@ -5,7 +5,7 @@ class GameController:
     def __init__(self, game_state, gui, player1_type='Human', player2_type='AI'):
         self.game_state = game_state
         self.gui = gui
-        self.current_player = 1
+        self.current_player = 2
         self.score = 100
         self.players = {1: player1_type, 2: player2_type}
         self.ai = AI()
@@ -20,7 +20,7 @@ class GameController:
         x, y = pos
         row = y // self.gui.cell_size
         col = x // self.gui.cell_size
-        self.gui.highlight_cell(row, col)
+        self.gui.highlight_cell(row, col,highlight_color=(0, 0, 255))
         if 0 <= row < self.gui.grid_size and 0 <= col < self.gui.grid_size:
             # Update the game state with the new move
             self.gui.update_game_state(row, col, self.current_player)
@@ -35,7 +35,7 @@ class GameController:
         ai_move = self.ai.choose_move(self.game_state)
         if ai_move:
             row, col = ai_move
-            self.gui.highlight_cell(row, col)
+            self.gui.highlight_cell(row, col,highlight_color=(255, 0, 0))
             # Update the game state with the AI's move
             self.gui.update_game_state(row, col, self.current_player)
             # Switch to the next player after the AI move

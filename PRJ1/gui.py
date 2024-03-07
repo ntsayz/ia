@@ -87,8 +87,10 @@ class GUI:
         """Highlight the specified cell for a brief moment."""
         rect = pygame.Rect(col * self.cell_size, row * self.cell_size, self.cell_size, self.cell_size)
         pygame.draw.rect(self.screen, highlight_color, rect, 5)  # Draw a thick border for highlight
-        pygame.display.flip()  # Update the display to show the highlight
-        pygame.time.wait(duration)
+        # If there is no duration, don't wait and don't flip the display
+        if duration > 0:
+            pygame.display.flip()  # Update the display to show the highlight
+            pygame.time.wait(duration)
 
     def update_game_state(self, row, col, player):
         if len(self.game_state.board[row][col]) >= 5:
@@ -97,6 +99,12 @@ class GUI:
         self.game_state.board[row][col].append(player)
         self.draw_board()
         pygame.display.flip()
+
+    def redraw_board(self):
+        """Redraw the entire board to reflect the current game state."""
+        self.draw_board()
+        pygame.display.flip()
+
 
     def redistribute_pieces(self, row, col):
         # Initialize bottom corners

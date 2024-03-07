@@ -7,20 +7,19 @@ class GameState:
         self.board = self.initialize_board()
 
     def initialize_board(self):
-        # Start with an empty board of the correct size
         board = [[[] for _ in range(self.board_size)] for _ in range(self.board_size)]
 
         for row in range(1, 7):
             for col in range(1, 7):
-                if row % 2 == 1:  # Odd rows: 1, 3, 5
-                    if col % 2 == 1:  # Odd columns: 1, 3, 5
+                if row % 2 == 1:  # rows: 1, 3, 5
+                    if col % 2 == 1:  # columns: 1, 3, 5
                         board[row][col] = [1] if (col == 1 or col == 5) else [2]
-                    else:  # Even columns: 2, 4, 6
+                    else:  # even columns: 2, 4, 6
                         board[row][col] = [2] if (col == 2 or col == 6) else [1]
-                else:  # Even rows: 2, 4, 6
-                    if col % 2 == 1:  # Odd columns: 1, 3, 5
+                else:  # even rows: 2, 4, 6
+                    if col % 2 == 1:  # odd columns 1, 3, 5
                         board[row][col] = [2] if (col == 1 or col == 5) else [1]
-                    else:  # Even columns: 2, 4, 6
+                    else:  # even columns: 2, 4, 6
                         board[row][col] = [1] if (col == 2 or col == 6) else [2]
 
         return board
@@ -30,28 +29,23 @@ class GameState:
         print(f"{player_number} trying moving stack from {src} to {dest}.")
         src_row, src_col = src
         dest_row, dest_col = dest
-
-        # Check if the move is valid (the top piece belongs to the player making the move)
+        # check if the move is valid - top piece needs to belong to the player making the move
         if self.board[src_row][src_col] and self.board[src_row][src_col][-1] == player_number:
-            # Move the stack from source to destination
+            # moving stack TODO change
             self.board[dest_row][dest_col].extend(self.board[src_row][src_col])
             self.board[src_row][src_col] = []
 
-            # Check for and handle stacks larger than 5 pieces, if necessary
-            # This is just an example and might need adjusting based on your game's rules
+            # check for and handle stacks larger than 5 pieces, if necessary TODO
             if len(self.board[dest_row][dest_col]) > 5:
                 self.board[dest_row][dest_col] = self.board[dest_row][dest_col][-5:]
 
-        # Return 'self' to indicate the state has been updated
-        # Note: Depending on your design, you might want to return a new GameState instance instead
         return self
 
     def is_game_over(self):
-        # This is a simple version. You need to implement it based on your game's rules.
-        # For both players, check if there are any legal moves available.
+        # TODO finish this
         for player_number in [1, 2]:
             if not self.get_legal_moves(player_number):
-                return True  # No legal moves for the player, game over.
+                return True
         return False  # If both players can still move, the game is not over.
 
     def get_legal_moves(self, player_number):

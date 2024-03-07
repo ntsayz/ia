@@ -67,17 +67,22 @@ class GUI:
         return (row, col) not in non_playable_cells
 
     def draw_control_panel(self, current_player, score):
+        #
         control_panel_rect = pygame.Rect(0, self.grid_size * self.cell_size,
                                          self.window_size[0] - self.info_panel_width, self.control_panel_height)
         pygame.draw.rect(self.screen, (200, 200, 200), control_panel_rect)
         control_text_surface = self.font.render(f'Player Turn: {current_player}', True, (0, 0, 0))
         self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 10))
+        control_text_surface = self.font.render(f'{self.game_controller.players[1]} vs {self.game_controller.players[2]}', True, (0, 0, 0))
+        self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 30))
+
+
 
     def draw_info_panel(self, current_player, score):
         info_panel_rect = pygame.Rect(self.window_size[0] - self.info_panel_width, 0, self.info_panel_width,
                                       self.window_size[1])
         pygame.draw.rect(self.screen, (200, 200, 200), info_panel_rect)
-        info_text_surface = self.font.render(f'Score: {score}', True, (0, 0, 0))
+        info_text_surface = self.font.render(f'FOCUS', True, (0, 0, 0))
         self.screen.blit(info_text_surface, (self.window_size[0] - self.info_panel_width + 10, 10))
 
     def highlight_cell(self, row, col, highlight_color=(255, 255, 0), duration=100):

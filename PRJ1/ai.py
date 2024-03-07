@@ -5,7 +5,7 @@ import math
 class AI:
     def __init__(self, difficulty='medium'):
         self.difficulty = difficulty
-        self.max_depth = 3 if difficulty == 'medium' else 5
+        self.max_depth = 2 if difficulty == 'medium' else 5
 
     def minimax(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf, maximizing_player=True):
         if depth == 0 or game_state.is_game_over():

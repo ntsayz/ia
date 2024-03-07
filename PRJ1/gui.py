@@ -60,7 +60,6 @@ class GUI:
         self.draw_info_panel(self.game_controller.current_player, self.game_controller.score)
 
     def is_playable(self, row, col):
-        # Non-playable cells are explicitly defined
         non_playable_cells = [
             (0, 0), (0, 1), (0, 6), (0, 7),
             (1, 0), (1, 7),
@@ -84,7 +83,6 @@ class GUI:
         self.screen.blit(info_text_surface, (self.window_size[0] - self.info_panel_width + 10, 10))
 
     def highlight_cell(self, row, col, highlight_color=(255, 255, 0), duration=100):
-        """Highlight the specified cell for a brief moment."""
         rect = pygame.Rect(col * self.cell_size, row * self.cell_size, self.cell_size, self.cell_size)
         pygame.draw.rect(self.screen, highlight_color, rect, 5)  # Draw a thick border for highlight
         # If there is no duration, don't wait and don't flip the display
@@ -94,14 +92,12 @@ class GUI:
 
     def update_game_state(self, row, col, player):
         if len(self.game_state.board[row][col]) >= 5:
-            # Redistribute pieces
             self.redistribute_pieces(row, col)
         self.game_state.board[row][col].append(player)
         self.draw_board()
         pygame.display.flip()
 
     def redraw_board(self):
-        """Redraw the entire board to reflect the current game state."""
         self.draw_board()
         pygame.display.flip()
 

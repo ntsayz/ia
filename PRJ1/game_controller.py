@@ -2,7 +2,7 @@ import pygame
 from ai import AI
 
 class GameController:
-    def __init__(self, game_state, gui, player1_type='AI', player2_type='AI'):
+    def __init__(self, game_state, gui, player1_type='Human', player2_type='AI'):
         self.game_state = game_state
         self.gui = gui
         self.current_player = 1

@@ -27,7 +27,7 @@ class GameState:
 
     def make_move(self, move, player_number):
         src, dest = move
-        print(f"Moving stack from {src} to {dest}.")
+        print(f"{player_number} trying moving stack from {src} to {dest}.")
         src_row, src_col = src
         dest_row, dest_col = dest
 
@@ -46,11 +46,33 @@ class GameState:
         # Note: Depending on your design, you might want to return a new GameState instance instead
         return self
 
-    def get_legal_moves(self):
-        return []
-
     def is_game_over(self):
-        return False
+        # This is a simple version. You need to implement it based on your game's rules.
+        # For both players, check if there are any legal moves available.
+        for player_number in [1, 2]:
+            if not self.get_legal_moves(player_number):
+                return True  # No legal moves for the player, game over.
+        return False  # If both players can still move, the game is not over.
+
+    def get_legal_moves(self, player_number):
+        valid_moves = []
+        for row in range(self.board_size):
+            for col in range(self.board_size):
+                stack = self.board[row][col]
+                if stack and stack[-1] == player_number:  # If the top piece belongs to the player
+                    stack_size = len(stack)
+                    # Determine valid move directions and distances based on stack size
+                    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                    for d in directions:
+                        for distance in range(1, stack_size + 1):
+                            new_row, new_col = row + d[0] * distance, col + d[1] * distance
+                            if 0 <= new_row < self.board_size and 0 <= new_col < self.board_size:
+                                if self.is_playable(new_row, new_col):  # Ensure move is to a playable cell
+                                    # Check if the move does not result in a stack over 5 pieces
+                                    destination_stack_size = len(self.board[new_row][new_col])
+                                    if destination_stack_size + stack_size <= 5:
+                                        valid_moves.append(((row, col), (new_row, new_col)))
+        return valid_moves
 
     def update_cell(self, row, col, value):
         self.board[row][col].append(value)
@@ -62,4 +84,13 @@ class GameState:
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def is_playable(self, row, col):
+        non_playable_cells = [
+            (0, 0), (0, 1), (0, 6), (0, 7),
+            (1, 0), (1, 7),
+            (6, 0), (6, 7),
+            (7, 0), (7, 1), (7, 6), (7, 7)
+        ]
+        return (row, col) not in non_playable_cells
 

@@ -59,8 +59,12 @@ class AI:
                             new_row, new_col = row + d[0] * distance, col + d[1] * distance
                             if 0 <= new_row < game_state.board_size and 0 <= new_col < game_state.board_size:
                                 if self.is_playable(new_row, new_col):  # Ensure move is to a playable cell
-                                    valid_moves.append(((row, col), (new_row, new_col)))
+                                    # Check if the move does not result in a stack over 5 pieces
+                                    destination_stack_size = len(game_state.board[new_row][new_col])
+                                    if destination_stack_size + stack_size <= 5:
+                                        valid_moves.append(((row, col), (new_row, new_col)))
         return valid_moves
+
 
     def evaluate_state(self, game_state, player_number):
         score = 0
@@ -72,7 +76,6 @@ class AI:
                         score += 5 * len(stack)  # Weight by stack size
                     else:
                         score -= 3 * len(stack)  # Opponent's stack diminishes score
-        # Adjustments for strategic advantages could be added here
         return score
 
     def is_playable(self, row, col):

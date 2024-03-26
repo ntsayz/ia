@@ -108,8 +108,11 @@ class GameController:
     def switch_player(self):
         self.current_player = 1 if self.current_player == 2 else 2
 
-        # Call `check_and_handle_ai_turn` only if the game is in a mode that involves AI players.
-        if self.players[self.current_player] == 'AI' or self.is_ai_vs_ai_mode():
+        # Debug print to trace player switching
+        print(f"Player switched to {self.current_player}")
+
+        # AI turn check and handling
+        if (self.current_player == 1 and self.ai_player_1) or (self.current_player == 2 and self.ai_player_2):
             self.check_and_handle_ai_turn()
 
     def is_ai_vs_ai_mode(self):

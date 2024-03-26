@@ -26,7 +26,7 @@ class GameState:
 
     def make_move(self, move, player_number):
         src, dest = move
-        print(f"{player_number} trying moving stack from {src} to {dest}.")
+        # print(f"{player_number} trying moving stack from {src} to {dest}.")
         src_row, src_col = src
         dest_row, dest_col = dest
         # check if the move is valid - top piece needs to belong to the player making the move

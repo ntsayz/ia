@@ -159,18 +159,32 @@ class GUI:
                                          self.window_size[0] - self.info_panel_width, self.control_panel_height)
         pygame.draw.rect(self.screen, (200, 200, 200), control_panel_rect)
 
-        # Game Mode at the top
+        # Mode and current player info
         mode_text_surface = self.font.render(f'Mode: {self.current_game_mode}', True, (0, 0, 0))
-        self.screen.blit(mode_text_surface, (10, self.grid_size * self.cell_size))
+        self.screen.blit(mode_text_surface, (10, self.grid_size * self.cell_size + 10))
 
-        # Adjusted position for existing text
-        control_text_surface = self.font.render(f'Player Turn: {current_player}', True, (0, 0, 0))
-        self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 30))
-        # Adjust for AI Type and Difficulty
-        ai_text_surface = self.font.render(f'AI: {self.current_ai_type}', True, (0, 0, 0))
-        difficulty_text_surface = self.font.render(f'Difficulty: {self.current_difficulty}', True, (0, 0, 0))
-        self.screen.blit(ai_text_surface, (10, self.grid_size * self.cell_size + 90))
-        self.screen.blit(difficulty_text_surface, (10, self.grid_size * self.cell_size + 120))
+        # Represent current player with a piece color
+        player_piece_color = (0, 0, 255) if self.game_controller.current_player == 1 else (
+        255, 255, 0)  # Blue for Player 1, Yellow for Player 2
+        pygame.draw.circle(self.screen, player_piece_color, (450, self.grid_size * self.cell_size + 30), 15)
+        player_text_surface = self.font.render("Player's Turn", True, (0, 0, 0))
+        self.screen.blit(player_text_surface, (270, self.grid_size * self.cell_size + 10))
+
+        # AI and difficulty info based on game mode
+        if self.current_game_mode == 'Human vs AI':
+            ai_text_surface = self.font.render(f'AI (Player 2): {self.current_ai_type}', True, (0, 0, 0))
+            self.screen.blit(ai_text_surface, (10, self.grid_size * self.cell_size + 40))
+
+        elif self.current_game_mode == 'AI vs AI':
+            ai1_text_surface = self.font.render(f'AI (Player 1): {self.current_ai_type}', True, (0, 0, 0))
+            ai2_text_surface = self.font.render(f'AI (Player 2): {self.current_ai_type_2}', True, (0, 0, 0))
+            self.screen.blit(ai1_text_surface, (10, self.grid_size * self.cell_size + 40))
+            self.screen.blit(ai2_text_surface, (10, self.grid_size * self.cell_size + 70))
+
+        # Show difficulty if AI is involved
+        if self.current_game_mode != 'Human vs Human':
+            difficulty_text_surface = self.font.render(f'Difficulty: {self.current_difficulty}', True, (0, 0, 0))
+            self.screen.blit(difficulty_text_surface, (10, self.grid_size * self.cell_size + 100))
 
     def draw_info_panel(self, current_player, score):
         info_panel_rect = pygame.Rect(self.window_size[0] - self.info_panel_width, 0, self.info_panel_width,

@@ -5,16 +5,19 @@ class GameController:
     def __init__(self, game_state, gui, player1_type='AI', player2_type='AI'):
         self.game_state = game_state
         self.gui = gui
+        self.ai_strategy = gui.current_ai_type  # Assuming this is stored after selection
+        self.ai_difficulty = gui.current_difficulty  # Similarly stored
+        self.ai = AI(strategy=self.ai_strategy, difficulty=self.ai_difficulty)
         self.current_player = 1
         self.score = 100
         self.players = {1: player1_type, 2: player2_type}
-        self.ai = AI()
         self.selected_source = None
         self.selected_destination = None
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            self.handle_mouse_click(event.pos)
+        if self.gui.game_started:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_mouse_click(event.pos)
 
     def handle_mouse_click(self, pos):
         x, y = pos

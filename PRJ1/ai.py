@@ -3,10 +3,46 @@ import math
 
 
 class AI:
-    def __init__(self, strategy='MiniMax', difficulty='medium'):
+    def __init__(self, strategy='MiniMax', difficulty='Medium'):
         self.strategy = strategy
         self.difficulty = difficulty
         self.max_depth = 2
+        self.max_depth = 2 if difficulty == 'Medium' else (1 if difficulty == 'Easy' else 3)
+
+    def choose_move(self, game_state, player_number):
+        if self.strategy == 'MiniMax':
+            return self.choose_minimax_move(game_state, player_number)
+        elif self.strategy == 'AlphaBeta':
+            return self.choose_minimax_move(game_state, player_number, use_alpha_beta=True)
+        elif self.strategy == 'MCTS':
+            return self.choose_mcts_move(game_state, player_number)
+        elif self.strategy == 'Variation of MCTS':
+            return self.choose_mcts_variant_move(game_state, player_number)
+        else:
+            raise ValueError(f"Unknown strategy: {self.strategy}")
+
+    def choose_minimax_move(self, game_state, player_number, use_alpha_beta=False):
+        best_eval = -math.inf
+        best_move = None
+        for move in self.get_valid_moves(game_state, player_number):
+            game_state_copy = game_state.copy()
+            game_state_copy.make_move(move,
+                                      player_number)
+            eval = self.minimax(game_state_copy, self.max_depth, player_number, -math.inf, math.inf, False)
+            if eval > best_eval:
+                best_eval = eval
+                best_move = move
+        return best_move
+
+    def choose_mcts_move(self, game_state, player_number):
+        # Placeholder for Monte Carlo Tree Search algorithm
+        # You will replace this with the actual MCTS implementation
+        return random.choice(self.get_valid_moves(game_state, player_number))[0]
+
+    def choose_mcts_variant_move(self, game_state, player_number):
+        # Placeholder for a variant of the MCTS algorithm
+        # This could be an implementation with different exploration/exploitation balance, etc.
+        return random.choice(self.get_valid_moves(game_state, player_number))[0]
 
     def minimax(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf, maximizing_player=True):
         if depth == 0 or game_state.is_game_over():
@@ -33,18 +69,6 @@ class AI:
                 if beta <= alpha:
                     break
             return min_eval
-
-    def choose_move(self, game_state, player_number):
-        best_eval = -math.inf
-        best_move = None
-        for move in self.get_valid_moves(game_state, player_number):
-            game_state_copy = game_state.copy()  # deep copy of the game's state
-            game_state_copy.make_move(move, player_number)  # apply the move only to the copy (this is giving some issues)
-            eval = self.minimax(game_state_copy, self.max_depth, player_number, -math.inf, math.inf, False)
-            if eval > best_eval:
-                best_eval = eval
-                best_move = move
-        return best_move
 
     def get_valid_moves(self, game_state, player_number):
         valid_moves = []

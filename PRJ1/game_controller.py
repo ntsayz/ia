@@ -2,17 +2,30 @@ import pygame
 from ai import AI
 
 class GameController:
-    def __init__(self, game_state, gui, player1_type='AI', player2_type='AI'):
+    def __init__(self, game_state, gui):
         self.game_state = game_state
         self.gui = gui
-        self.ai_strategy = gui.current_ai_type  # Assuming this is stored after selection
-        self.ai_difficulty = gui.current_difficulty  # Similarly stored
-        self.ai = AI(strategy=self.ai_strategy, difficulty=self.ai_difficulty)
         self.current_player = 1
         self.score = 100
-        self.players = {1: player1_type, 2: player2_type}
+        self.players = [AI(), AI()]
+        self.ai_player_1 = None  # Initialize to None
+        self.ai_player_2 = None  # Initialize to None
+        self.set_player_types()
         self.selected_source = None
         self.selected_destination = None
+
+    def set_player_types(self):
+        # Update player types based on GUI selection
+        mode = self.gui.current_game_mode
+        if mode == 'Human vs Human':
+            self.players = {1: 'Human', 2: 'Human'}
+        elif mode == 'Human vs AI':
+            self.players = {1: 'Human', 2: 'AI'}
+            self.ai_player_2 = AI(strategy=self.gui.current_ai_type, difficulty=self.gui.current_difficulty)
+        elif mode == 'AI vs AI':
+            self.players = {1: 'AI', 2: 'AI'}
+            self.ai_player_1 = AI(strategy=self.gui.current_ai_type, difficulty=self.gui.current_difficulty)
+            self.ai_player_2 = AI(strategy=self.gui.current_ai_type_2, difficulty=self.gui.current_difficulty)
 
     def handle_event(self, event):
         if self.gui.game_started:
@@ -55,32 +68,34 @@ class GameController:
         # switch players after a successful move
         self.switch_player()
 
-
-
     def handle_ai_turn(self):
-        pygame.time.wait(200)
+        # Determine which AI object to use based on the current player
+        ai = self.ai_player_1 if self.current_player == 1 else self.ai_player_2
 
-        ai_move = self.ai.choose_move(self.game_state, self.current_player)
-        if ai_move:
-            src, dest = ai_move
-            src_row, src_col = src
-            dest_row, dest_col = dest
+        if ai:  # If the current player is an AI
+            # pygame.time.wait(200)  # Optionally wait a bit to simulate thinking
 
-            print(f"{self.current_player} moved from {src} to {dest}.")
+            ai_move = ai.choose_move(self.game_state, self.current_player)
+            if ai_move:
+                src, dest = ai_move
+                src_row, src_col = src
+                dest_row, dest_col = dest
 
-            # highlight source and dest
-            self.gui.highlight_cell(src_row, src_col, highlight_color=(255, 0, 0))
-            pygame.time.wait(200)
-            self.gui.highlight_cell(dest_row, dest_col, highlight_color=(255, 255, 0))
+                print(f"AI Player {self.current_player} moved from {src} to {dest}.")
 
-            # make the  move
-            self.move_pieces(src_row, src_col, dest_row, dest_col)
+                # Highlight source and destination cells
+                self.gui.highlight_cell(src_row, src_col, highlight_color=(255, 0, 0))
+                # pygame.time.wait(100)  # Optionally wait a bit to simulate move animation
+                self.gui.highlight_cell(dest_row, dest_col, highlight_color=(255, 255, 0))
 
-            self.gui.redraw_board()
+                # Perform the move
+                self.move_pieces(src_row, src_col, dest_row, dest_col)
 
-            self.switch_player()
+                self.gui.redraw_board()
 
-        self.game_state.print_board()
+                self.switch_player()
+
+            self.game_state.print_board()
 
     def move_pieces(self, src_row, src_col, dest_row, dest_col):
         # move stack from src to dest
@@ -91,13 +106,20 @@ class GameController:
         self.gui.redraw_board()
 
     def switch_player(self):
-
         self.current_player = 1 if self.current_player == 2 else 2
 
-        self.check_and_handle_ai_turn()
+        # Call `check_and_handle_ai_turn` only if the game is in a mode that involves AI players.
+        if self.players[self.current_player] == 'AI' or self.is_ai_vs_ai_mode():
+            self.check_and_handle_ai_turn()
+
+    def is_ai_vs_ai_mode(self):
+        return self.players[1] == 'AI' and self.players[2] == 'AI'
 
     def check_and_handle_ai_turn(self):
-        if self.players[self.current_player] == 'AI':
+        # Determine which AI is playing based on the current player
+        if self.current_player == 1 and self.ai_player_1:
+            self.handle_ai_turn()
+        elif self.current_player == 2 and self.ai_player_2:
             self.handle_ai_turn()
 
     def update_gui(self):

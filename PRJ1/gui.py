@@ -9,8 +9,11 @@ class GUI:
         pygame.init()
         self.window_size = (1000, 900)
         self.ai_types = ['MiniMax', 'AlphaBeta', 'MCTS', 'Variation of MCTS']
+        self.game_modes = ['Human vs Human', 'Human vs AI', 'AI vs AI']
+        self.current_game_mode = 'Human vs AI'
         self.difficulties = ['Easy', 'Medium', 'Hard']
-        self.current_ai_type = 'MiniMax'
+        self.current_ai_type = 'MiniMax'  # Default AI type for player 1
+        self.current_ai_type_2 = 'MiniMax'  # Default AI type for player 2, used in AI vs AI
         self.current_difficulty = 'Medium'
         self.screen = pygame.display.set_mode(self.window_size)
         self.game_controller = GameController(self.game_state, self)
@@ -75,58 +78,99 @@ class GUI:
         self.screen.fill((0, 0, 0))  # Clear screen or use a background color
 
         y_start = 100
+        for game_mode in self.game_modes:
+            color = (255, 255, 0) if game_mode == self.current_game_mode else (255, 255, 255)
+            text_surface = self.font.render(game_mode, True, color)
+            rect = text_surface.get_rect(center=(self.window_size[0] // 2, y_start))
+            self.screen.blit(text_surface, rect)
+            y_start += 50
+
+        self.draw_start_button()
+
+        if self.current_game_mode != 'Human vs Human':
+            self.draw_ai_options(y_start, is_second_ai=False)  # Draw options for the first AI
+
+        if self.current_game_mode == 'AI vs AI':
+            # Adjust y_start based on how many options were displayed above
+            y_start += (len(self.ai_types) + len(self.difficulties)) * 50
+            self.draw_ai_options(y_start, is_second_ai=True)
+
+
+        pygame.display.flip()  # Update the display to show the menu
+
+    def draw_ai_options(self, y_start, is_second_ai):
+        # Function to draw AI type and difficulty options
+        label = 'AI 2 Type:' if is_second_ai else 'AI Type:'
+        ai_label_surface = self.font.render(label, True, (255, 255, 255))
+        self.screen.blit(ai_label_surface, (self.window_size[0] // 3 - 100, y_start))
+        y_start += 50
+
         for ai_type in self.ai_types:
-            color = (255, 255, 0) if ai_type == self.current_ai_type else (255, 255, 255)
+            current_ai_type = self.current_ai_type_2 if is_second_ai else self.current_ai_type
+            color = (255, 255, 0) if ai_type == current_ai_type else (255, 255, 255)
             text_surface = self.font.render(ai_type, True, color)
             rect = text_surface.get_rect(center=(self.window_size[0] // 3, y_start))
             self.screen.blit(text_surface, rect)
             y_start += 50
 
-        y_start = 100
-        for difficulty in self.difficulties:
-            color = (255, 255, 0) if difficulty == self.current_difficulty else (255, 255, 255)
-            text_surface = self.font.render(difficulty, True, color)
-            rect = text_surface.get_rect(center=(2 * self.window_size[0] // 3, y_start))
-            self.screen.blit(text_surface, rect)
+        if not is_second_ai:
+            label = 'Difficulty:'
+            difficulty_label_surface = self.font.render(label, True, (255, 255, 255))
+            self.screen.blit(difficulty_label_surface, (2 * self.window_size[0] // 3 - 100, y_start))
             y_start += 50
 
-        start_button_rect = pygame.Rect(self.window_size[0] - 200, self.window_size[1] - 100, 200, 100)
-        pygame.draw.rect(self.screen, (0, 255, 0), start_button_rect)  # Green button
-
-        start_text = self.font.render('START GAME', True, (0, 0, 0))
-        self.screen.blit(start_text, (start_button_rect.x + 20, start_button_rect.y + 35))
-
-        pygame.display.flip()  # Update the display to show the menu
+            for difficulty in self.difficulties:
+                color = (255, 255, 0) if difficulty == self.current_difficulty else (255, 255, 255)
+                text_surface = self.font.render(difficulty, True, color)
+                rect = text_surface.get_rect(center=(2 * self.window_size[0] // 3, y_start))
+                self.screen.blit(text_surface, rect)
+                y_start += 50
 
     def handle_ai_menu_selection(self, pos):
-        # Assuming menu items are spaced 50 pixels apart and start at 100 pixels down
-        # Adjust these values based on your actual layout
-        ai_type_index = (pos[1] - 100) // 50 if pos[0] < self.window_size[0] // 2 else None
-        difficulty_index = (pos[1] - 100) // 50 if pos[0] >= self.window_size[0] // 2 else None
+        # Game Mode selection
+        game_mode_index = (pos[1] - 100) // 50
+        if 0 <= game_mode_index < len(self.game_modes):
+            self.current_game_mode = self.game_modes[game_mode_index]
 
-        if ai_type_index is not None and 0 <= ai_type_index < len(self.ai_types):
-            self.current_ai_type = self.ai_types[ai_type_index]
-        if difficulty_index is not None and 0 <= difficulty_index < len(self.difficulties):
+        # Adjust y_start based on game modes displayed
+        y_start = 100 + len(self.game_modes) * 50
+
+        # AI Type selection for first AI or only AI
+        ai_type_index = (pos[1] - y_start) // 50
+        if 0 <= ai_type_index < len(self.ai_types):
+            if self.current_game_mode != 'AI vs AI':
+                self.current_ai_type = self.ai_types[ai_type_index]
+            else:
+                # Distinguish between first and second AI based on screen position
+                if pos[0] < self.window_size[0] // 2:
+                    self.current_ai_type = self.ai_types[ai_type_index]
+                else:
+                    self.current_ai_type_2 = self.ai_types[ai_type_index]
+
+        # Difficulty selection
+        difficulty_index = (pos[1] - (y_start + len(self.ai_types) * 50)) // 50
+        if 0 <= difficulty_index < len(self.difficulties):
             self.current_difficulty = self.difficulties[difficulty_index]
 
-        self.draw_ai_selection_menu()  # Redraw the menu with the updated selection
+        self.draw_ai_selection_menu()  # Redraw menu with updated selection
 
     def draw_control_panel(self, current_player, score):
-        #
         control_panel_rect = pygame.Rect(0, self.grid_size * self.cell_size,
                                          self.window_size[0] - self.info_panel_width, self.control_panel_height)
         pygame.draw.rect(self.screen, (200, 200, 200), control_panel_rect)
-        control_text_surface = self.font.render(f'Player Turn: {current_player}', True, (0, 0, 0))
-        self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 10))
-        control_text_surface = self.font.render(f'{self.game_controller.players[1]} vs {self.game_controller.players[2]}', True, (0, 0, 0))
-        self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 30))
-        ai_text = f'AI: {self.current_ai_type}' if self.current_ai_type else 'AI: Not selected'
-        difficulty_text = f'Difficulty: {self.current_difficulty}'
-        ai_text_surface = self.font.render(ai_text, True, (0, 0, 0))
-        difficulty_text_surface = self.font.render(difficulty_text, True, (0, 0, 0))
-        self.screen.blit(ai_text_surface, (10, self.grid_size * self.cell_size + 50))
-        self.screen.blit(difficulty_text_surface, (10, self.grid_size * self.cell_size + 80))
 
+        # Game Mode at the top
+        mode_text_surface = self.font.render(f'Mode: {self.current_game_mode}', True, (0, 0, 0))
+        self.screen.blit(mode_text_surface, (10, self.grid_size * self.cell_size))
+
+        # Adjusted position for existing text
+        control_text_surface = self.font.render(f'Player Turn: {current_player}', True, (0, 0, 0))
+        self.screen.blit(control_text_surface, (10, self.grid_size * self.cell_size + 30))
+        # Adjust for AI Type and Difficulty
+        ai_text_surface = self.font.render(f'AI: {self.current_ai_type}', True, (0, 0, 0))
+        difficulty_text_surface = self.font.render(f'Difficulty: {self.current_difficulty}', True, (0, 0, 0))
+        self.screen.blit(ai_text_surface, (10, self.grid_size * self.cell_size + 90))
+        self.screen.blit(difficulty_text_surface, (10, self.grid_size * self.cell_size + 120))
 
     def draw_info_panel(self, current_player, score):
         info_panel_rect = pygame.Rect(self.window_size[0] - self.info_panel_width, 0, self.info_panel_width,
@@ -202,7 +246,11 @@ class GUI:
 
                     # If the game has already started, handle game-related events
                     elif self.game_started:
-                        self.game_controller.handle_event(event)
+                        self.game_controller.set_player_types()
+                        if self.game_controller.is_ai_vs_ai_mode:
+                            self.game_controller.handle_event(event)
+                        else:
+                            self.game_controller.handle_event(event)
 
             # Only draw the start button and AI selection menu if the game has not started
             if not self.game_started:

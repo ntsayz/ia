@@ -18,11 +18,14 @@ class GUI:
         self.screen = pygame.display.set_mode(self.window_size)
         self.game_controller = GameController(self.game_state, self)
         self.cell_size = 100
+        self.tip_algorithms = ['MiniMax', 'AlphaBeta', 'MCTS', 'Variation of MCTS']
+        self.current_tip_algorithm_index = 0
         self.grid_size = self.game_state.board_size
         self.control_panel_height = 100
         self.info_panel_width = 200
         self.font = pygame.font.Font(None, 36)
         self.draw_board()
+
         self.game_started = False
 
     def draw_board(self):
@@ -192,6 +195,11 @@ class GUI:
         pygame.draw.rect(self.screen, (200, 200, 200), info_panel_rect)
         info_text_surface = self.font.render(f'FOCUS', True, (0, 0, 0))
         self.screen.blit(info_text_surface, (self.window_size[0] - self.info_panel_width + 10, 10))
+        tips_text_surface = self.font.render('TIPS', True, (0, 0, 0))
+        self.screen.blit(tips_text_surface, (self.window_size[0] - self.info_panel_width + 10, 50))
+        current_algo_surface = self.font.render(self.tip_algorithms[self.current_tip_algorithm_index], True,
+                                                (0, 0, 255))
+        self.screen.blit(current_algo_surface, (self.window_size[0] - self.info_panel_width + 10, 90))
 
     def highlight_cell(self, row, col, highlight_color=(255, 255, 0), duration=100):
         rect = pygame.Rect(col * self.cell_size, row * self.cell_size, self.cell_size, self.cell_size)
@@ -200,6 +208,8 @@ class GUI:
         if duration > 0:
             pygame.display.flip()  # updating the display to show the highlight move
             pygame.time.wait(duration)
+
+
 
     def update_game_state(self, row, col, player):
         if len(self.game_state.board[row][col]) >= 5:
@@ -265,6 +275,10 @@ class GUI:
                             self.game_controller.handle_event(event)
                         else:
                             self.game_controller.handle_event(event)
+                elif event.type == pygame.KEYDOWN:
+                    # Directly forward keyboard events to the game controller if the game has started
+                    if self.game_started:
+                        self.game_controller.handle_event(event)
 
             # Only draw the start button and AI selection menu if the game has not started
             if not self.game_started:

@@ -6,6 +6,7 @@ class GameState:
         self.board_size = board_size
         self.board = self.initialize_board()
 
+
     def initialize_board(self):
         board = [[[] for _ in range(self.board_size)] for _ in range(self.board_size)]
 

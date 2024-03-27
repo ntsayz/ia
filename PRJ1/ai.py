@@ -72,36 +72,81 @@ class AI:
 
     def get_valid_moves(self, game_state, player_number):
         valid_moves = []
+        # Define cells that should never initiate a move
+        special_cells = [(0, 0), (0, 1), (0, 6), (0, 7),
+                         (1, 0), (1, 7),
+                         (6, 0), (6, 7),
+                         (7, 0), (7, 1), (7, 6), (7, 7)]
+
         for row in range(game_state.board_size):
             for col in range(game_state.board_size):
+                # Skip if the cell is a special cell
+                if (row, col) in special_cells:
+                    continue
+
                 stack = game_state.board[row][col]
-                if stack and stack[-1] == player_number:  # if the top piece belongs to the player
+                if stack and stack[-1] == player_number:
                     stack_size = len(stack)
-                    # determina valid move dirs and distances based on stack size
-                    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+                    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
                     for d in directions:
                         for distance in range(1, stack_size + 1):
                             new_row, new_col = row + d[0] * distance, col + d[1] * distance
-                            if 0 <= new_row < game_state.board_size and 0 <= new_col < game_state.board_size:
-                                if self.is_playable(new_row, new_col):
-                                    # move cannot result in stack with over 5 pieces
-                                    destination_stack_size = len(game_state.board[new_row][new_col])
-                                    if destination_stack_size + stack_size <= 5:
-                                        valid_moves.append(((row, col), (new_row, new_col)))
+                            if 0 <= new_row < game_state.board_size and 0 <= new_col < game_state.board_size and self.is_playable(
+                                    new_row, new_col):
+                                valid_moves.append(((row, col), (new_row, new_col)))
+
+        # Handling moves for retrieving a piece from the sideline if applicable
+        sideline_src = (7, 7) if player_number == 1 else (7, 0)
+        if game_state.board[sideline_src[0]][sideline_src[1]]:
+            # Allow retrieving a piece from the sideline to any playable position on the board
+            for row in range(game_state.board_size):
+                for col in range(game_state.board_size):
+                    if self.is_playable(row, col) and row not in [6,7]:
+                        valid_moves.append((sideline_src, (row, col)))
+
         return valid_moves
 
     # TODO way too simplistic, change!
     def evaluate_state(self, game_state, player_number):
         score = 0
+        opponent_number = 2 if player_number == 1 else 1
+
         for row in range(game_state.board_size):
             for col in range(game_state.board_size):
                 stack = game_state.board[row][col]
                 if stack:
-                    if stack[-1] == player_number:  # control of the stack
-                        score += 5 * len(stack)  # weight by stack size
-                    else:
-                        score -= 3 * len(stack)  # opponent's stack diminishes score
+                    # Base score for stack size
+                    stack_base_score = 5 * len(stack) if stack[-1] == player_number else -3 * len(stack)
+
+                    # Bonus for having your piece on top
+                    top_piece_bonus = 10 if stack[-1] == player_number else -5
+
+                    score += stack_base_score + top_piece_bonus
+
+                    # Extra penalty for opponent's piece on top
+                    if stack[-1] == opponent_number:
+                        score -= 10
+
+        # Special consideration for capturing and sidelined pieces
+        capture_positions = [(6, 7), (6, 0)]  # Positions where captured pieces are placed
+        sideline_positions = [(7, 7), (7, 0)]  # Positions for sidelined pieces
+
+        # Increase the score for captured opponent pieces
+        for capture_pos in capture_positions:
+            stack = game_state.board[capture_pos[0]][capture_pos[1]]
+            if stack and stack[-1] == player_number:
+                # Heavily favor capturing opponent pieces
+                score += 15 * len(stack)
+
+        # Increase the score for having the ability to retrieve your own pieces
+        for sideline_pos in sideline_positions:
+            stack = game_state.board[sideline_pos[0]][sideline_pos[1]]
+            if stack and stack[-1] == player_number:
+                # Favor having your pieces in the sideline position ready to be brought back
+                score += 20 * len(stack)
+
         return score
+
     # todo this has to be dynamic to support multiple board sizes
     def is_playable(self, row, col):
         non_playable_cells = [

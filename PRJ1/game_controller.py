@@ -13,12 +13,14 @@ class GameController:
         self.set_player_types()
         self.selected_source = None
         self.selected_destination = None
+        self.is_human = False
 
     def set_player_types(self):
         # Update player types based on GUI selection
         mode = self.gui.current_game_mode
         if mode == 'Human vs Human':
             self.players = {1: 'Human', 2: 'Human'}
+            self.is_human = True
         elif mode == 'Human vs AI':
             self.players = {1: 'Human', 2: 'AI'}
             self.ai_player_2 = AI(strategy=self.gui.current_ai_type, difficulty=self.gui.current_difficulty)
@@ -62,6 +64,9 @@ class GameController:
         # move the stack from source to destination
         self.game_state.board[destination[0]][destination[1]].extend(self.game_state.board[source[0]][source[1]])
         self.game_state.board[source[0]][source[1]] = [] # TODO THIS NEEDS TO GO
+
+        self.game_state.redistribute_excess_pieces()
+
         self.gui.draw_board()
         pygame.display.flip()
 
@@ -102,18 +107,21 @@ class GameController:
         stack_to_move = self.game_state.board[src_row][src_col]
         self.game_state.board[dest_row][dest_col].extend(stack_to_move)
         self.game_state.board[src_row][src_col] = []
+        self.game_state.redistribute_excess_pieces()
 
         self.gui.redraw_board()
 
     def switch_player(self):
         self.current_player = 1 if self.current_player == 2 else 2
 
+
         # Debug print to trace player switching
         print(f"Player switched to {self.current_player}")
 
-        # AI turn check and handling
-        if (self.current_player == 1 and self.ai_player_1) or (self.current_player == 2 and self.ai_player_2):
-            self.check_and_handle_ai_turn()
+        if not self.is_human:
+            # AI turn check and handling
+            if (self.current_player == 1 and self.ai_player_1) or (self.current_player == 2 and self.ai_player_2):
+                self.check_and_handle_ai_turn()
 
     def is_ai_vs_ai_mode(self):
         return self.players[1] == 'AI' and self.players[2] == 'AI'

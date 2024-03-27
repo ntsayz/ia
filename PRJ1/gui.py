@@ -42,9 +42,9 @@ class GUI:
 
                 # colors for the store and out of the game cells
                 if (i, j) == bottom_left:
-                    cell_color = (255, 0, 0)  # Red
+                    cell_color = (100, 120, 120)  # g
                 elif (i, j) == bottom_right:
-                    cell_color = (0, 0, 255)  # Blue
+                    cell_color = (100, 120, 120)  # g
 
                 pygame.draw.rect(self.screen, cell_color, rect)
 

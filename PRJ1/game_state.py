@@ -35,10 +35,7 @@ class GameState:
             self.board[dest_row][dest_col].extend(self.board[src_row][src_col])
             self.board[src_row][src_col] = []
 
-            # check for and handle stacks larger than 5 pieces, if necessary TODO
-            if len(self.board[dest_row][dest_col]) > 5:
-                self.board[dest_row][dest_col] = self.board[dest_row][dest_col][-5:]
-
+        self.redistribute_excess_pieces()
         return self
 
     def is_game_over(self):
@@ -87,4 +84,40 @@ class GameState:
             (7, 0), (7, 1), (7, 6), (7, 7)
         ]
         return (row, col) not in non_playable_cells
+
+    def redistribute_excess_pieces(self):
+        for row in range(self.board_size):
+            for col in range(self.board_size):
+                stack = self.board[row][col]
+                if len(stack) > 5:
+                    # Calculate how many pieces need to be removed (and therefore, redistributed)
+                    excess_count = len(stack) - 5
+
+                    # Separate the excess pieces from the bottom of the stack
+                    excess_pieces = stack[:excess_count]
+
+                    # Trim the original stack to a max size of 5
+                    self.board[row][col] = stack[excess_count:]
+
+                    # Determine the top piece AFTER trimming for correct redirection
+                    top_piece = self.board[row][col][-1]
+
+                    # Redistribute the excess pieces based on their type relative to the top piece
+                    for piece in excess_pieces:
+                        if piece == top_piece:
+                            # Sidelined destination based on top piece
+                            sidelined_dest = (7, 7) if top_piece == 1 else (7, 0)
+                            self.board[sidelined_dest[0]][sidelined_dest[1]].append(piece)
+                        else:
+                            # Captured destination based on top piece
+                            captured_dest = (6, 7) if top_piece == 1 else (6, 0)
+                            self.board[captured_dest[0]][captured_dest[1]].append(piece)
+
+                    # Ensure the sidelined and captured destinations do not exceed max stack size
+                    # This part is optional since capturing/sidelining should not create stacks > 5 normally
+                    for dest in [(7, 7), (7, 0), (6, 7), (6, 0)]:
+                        if len(self.board[dest[0]][dest[1]]) > 5:
+                            self.board[dest[0]][dest[1]] = self.board[dest[0]][dest[1]][-5:]
+
+
 

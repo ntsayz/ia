@@ -89,3 +89,38 @@ The terminal condition is evaluated by checking if a player has any legal moves 
 
 The project is being developed using Python and the [pygame](https://www.pygame.org/docs/) library for the GUI
 
+/////
+
+
+1. Algorithms to Implement
+
+    Minimax: The foundational adversarial search algorithm for two-player games. It assumes both players play optimally and exhaustively searches the game tree to choose the best move.
+    Minimax with αβ Pruning: An optimization of Minimax that eliminates the need to explore parts of the tree that won't affect the final decision, improving efficiency without affecting the outcome.
+    Variants of Minimax: This could include implementing iterative deepening to combine the depth-first search of Minimax with the breadth-first level of exploration, or introducing move ordering to improve the efficiency of αβ pruning.
+    Monte Carlo Tree Search (MCTS): A probabilistic search algorithm that builds a search tree incrementally using random sampling of the game space. Different configurations can explore the balance between exploration of new moves and exploitation of known good moves.
+
+2. Points of Comparison
+
+For each algorithm or variant, consider comparing the following aspects:
+
+    Performance: Measure wins, draws, and losses when the algorithms play against each other or against different skill levels of human players.
+    Efficiency: Compare the average time taken to decide on a move and the number of nodes generated or visited.
+    Skill Levels: Reflect different levels of difficulty (easy, medium, hard) through various approaches such as changing the depth of search in Minimax and αβ pruning, or altering the exploration/exploitation balance in MCTS.
+    Quality of Play: Evaluate the quality of the moves chosen by the algorithms, which can be subjective but can also be quantified by the number of moves to win or lose a game, or the capability to execute known strategic patterns or tactics in Focus.
+
+3. Implementation Considerations
+
+    Evaluation Functions: For Minimax and its variants, the evaluation function's sophistication can significantly affect performance. Simple heuristics might count material advantage or position, while more complex ones could incorporate specific game phases or patterns.
+    Board Sizes: If possible, implement variable board sizes and observe how this affects algorithm performance and decision time.
+    Game Modes: Implement the required game modes (human-human, human-computer, computer-computer) and provide an interface for easy switching between them.
+    User Interface: Whether textual or graphical, ensure the interface clearly displays the game state, available moves, and any hints or options for the player. Providing visual differentiation between different levels of AI difficulty or strategies could also enhance user experience.
+    Hints: For human players, consider implementing a hint system that suggests moves. This could be based on running the decision algorithms in a lower-depth mode or showing potential threats and opportunities identified by the AI.
+
+4. Analysis of Results
+
+Your analysis should aim to draw insights from the comparative performance of the different algorithms. Highlight situations where one algorithm outperforms others, such as MCTS being more effective in complex, less deterministic scenarios, or Minimax variants showing their strength in games where the search space can be efficiently pruned. Discuss any trade-offs observed, such as between decision time and quality of play, or the computational resources required.
+5. Conclusion and Future Work
+
+Conclude with a summary of your findings, emphasizing the strengths and limitations of each algorithm in the context of Focus. Suggest directions for future research, such as exploring hybrid approaches, further optimizing evaluation functions, or applying machine learning techniques to learn evaluation functions or search strategies.
+
+This project will not only deepen your understanding of these algorithms but also contribute valuable insights into their application in board games, especially in a less commonly analyzed game like Focus.

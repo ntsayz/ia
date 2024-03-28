@@ -11,8 +11,10 @@ class AI:
 
     def choose_move(self, game_state, player_number):
         if self.strategy == 'MiniMax':
+            print("Minimax strategy ", player_number)
             return self.choose_minimax_move(game_state, player_number)
         elif self.strategy == 'AlphaBeta':
+            print("AlphaBeta strategy ", player_number)
             return self.choose_minimax_move(game_state, player_number, use_alpha_beta=True)
         elif self.strategy == 'MCTS':
             return self.choose_mcts_move(game_state, player_number)
@@ -28,7 +30,10 @@ class AI:
             game_state_copy = game_state.copy()
             game_state_copy.make_move(move,
                                       player_number)
-            eval = self.minimax(game_state_copy, self.max_depth, player_number, -math.inf, math.inf, False)
+            if use_alpha_beta:
+                eval = self.minimax_alpha_beta(game_state_copy, self.max_depth, player_number, -math.inf, math.inf, True)
+            else:
+                eval = self.minimax(game_state_copy,self.max_depth, player_number,True)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
@@ -44,7 +49,29 @@ class AI:
         # This could be an implementation with different exploration/exploitation balance, etc.
         return random.choice(self.get_valid_moves(game_state, player_number))[0]
 
-    def minimax(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf, maximizing_player=True):
+    def minimax(self, game_state, depth, player_number, maximizing_player):
+        if depth == 0 or game_state.is_game_over():
+            return self.evaluate_state_simpler(game_state, player_number)
+
+        if maximizing_player:
+            max_eval = -float('inf')
+            for move in self.get_valid_moves(game_state, player_number):
+                game_state_copy = game_state.copy()
+                game_state_copy.make_move(move, player_number)
+                eval = self.minimax(game_state_copy, depth - 1, player_number, False)
+                max_eval = max(max_eval, eval)
+            return max_eval
+        else:
+            min_eval = float('inf')
+            opponent_number = 2 if player_number == 1 else 1
+            for move in self.get_valid_moves(game_state, opponent_number):
+                game_state_copy = game_state.copy()
+                game_state_copy.make_move(move, opponent_number)
+                eval = self.minimax(game_state_copy, depth - 1, player_number, True)
+                min_eval = min(min_eval, eval)
+            return min_eval
+
+    def minimax_alpha_beta(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf, maximizing_player=True):
         if depth == 0 or game_state.is_game_over():
             return self.evaluate_state(game_state, player_number)
 
@@ -52,7 +79,7 @@ class AI:
             max_eval = -math.inf
             for move in self.get_valid_moves(game_state, player_number):
                 game_state_copy = game_state.make_move(move, player_number)
-                eval = self.minimax(game_state_copy, depth - 1, player_number, alpha, beta, False)
+                eval = self.minimax_alpha_beta(game_state_copy, depth - 1, player_number, alpha, beta, False)
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
@@ -63,7 +90,7 @@ class AI:
             opponent_number = 2 if player_number == 1 else 1
             for move in self.get_valid_moves(game_state, opponent_number):
                 game_state_copy = game_state.make_move(move, opponent_number)
-                eval = self.minimax(game_state_copy, depth - 1, player_number, alpha, beta, True)
+                eval = self.minimax_alpha_beta(game_state_copy, depth - 1, player_number, alpha, beta, True)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
@@ -121,6 +148,18 @@ class AI:
         score += 15 * len(
             game_state.board[captured_location[0]][captured_location[1]])  # Value for each captured opponent piece
         score += random.uniform(-0.1, 0.1)
+        return score
+
+    def evaluate_state_simpler(self, game_state, player_number):
+        score = 0
+
+        for row in range(game_state.board_size):
+            for col in range(game_state.board_size):
+                stack = game_state.board[row][col]
+                if stack:
+                    if stack[-1] == player_number:
+                        score += 1 + 0.1 * len(stack)
+
         return score
 
     # todo this has to be dynamic to support multiple board sizes

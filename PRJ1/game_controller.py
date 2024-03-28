@@ -1,3 +1,5 @@
+import time
+
 import pygame
 from ai import AI
 import copy
@@ -20,6 +22,7 @@ class GameController:
         self.last_suggested_move = None
         self.moves_made = {1: 0, 2: 0}  # Moves made by each player
         self.pieces_captured = {1: 0, 2: 0}
+        self.move_times = {1: [], 2: []}
 
     def set_player_types(self):
         # Update player types based on GUI selection
@@ -135,8 +138,12 @@ class GameController:
 
         if ai:  # If the current player is an AI
             # pygame.time.wait(200)  # Optionally wait a bit to simulate thinking
-
+            start_time = time.time()
             ai_move = ai.choose_move(self.game_state, self.current_player)
+
+            move_time = time.time() - start_time
+            self.move_times[self.current_player].append(move_time)
+
             if ai_move:
                 self.moves_made[self.current_player] += 1
                 src, dest = ai_move
@@ -158,6 +165,11 @@ class GameController:
                 self.switch_player()
 
             self.game_state.print_board()
+
+    def calculate_average_move_time(self, player):
+        if self.move_times[player]:
+            return sum(self.move_times[player]) / len(self.move_times[player])
+        return 0
 
     def move_pieces(self, src_row, src_col, dest_row, dest_col):
         # move stack from src to dest

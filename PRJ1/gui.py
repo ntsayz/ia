@@ -49,7 +49,6 @@ class GUI:
         # Restart the game loop
         self.main_loop()
 
-
     def draw_board(self):
         bottom_left = (self.grid_size - 1, 0)
         bottom_right = (self.grid_size - 1, self.grid_size - 1)
@@ -120,13 +119,12 @@ class GUI:
         self.draw_start_button()
 
         if self.current_game_mode != 'Human vs Human':
-            self.draw_ai_options(y_start, is_second_ai=False)  # Draw options for the first AI
+            self.draw_ai_options(y_start, self.window_size[0] // 4, is_second_ai=False)  # Draw options for the first AI
 
         if self.current_game_mode == 'AI vs AI':
             # Adjust y_start based on how many options were displayed above
-            y_start += (len(self.ai_types) + len(self.difficulties)) * 50
-            self.draw_ai_options(y_start, is_second_ai=True)
-
+            #y_start += (len(self.ai_types) + len(self.difficulties)) * 50
+            self.draw_ai_options(y_start,  self.window_size[0] - self.window_size[0] // 4, is_second_ai=True)
 
         pygame.display.flip()  # Update the display to show the menu
 
@@ -147,39 +145,57 @@ class GUI:
         player1_captures = len(self.game_state.board[6][7])
         player2_captures = len(self.game_state.board[6][0])
 
-        player1_stats_surface = font_stats.render(f'Player 1 - Moves: {self.game_controller.moves_made[1]}, Captures: {player1_captures}', True, (255, 255, 255))
+        player1_stats_surface = font_stats.render(
+            f'Player 1 - Moves: {self.game_controller.moves_made[1]}, Captures: {player1_captures}', True,
+            (255, 255, 255))
         self.screen.blit(player1_stats_surface, (110, 210))
 
-        player2_stats_surface = font_stats.render(f'Player 2 - Moves: {self.game_controller.moves_made[2]}, Captures: {player2_captures}', True, (255, 255, 255))
+        player2_stats_surface = font_stats.render(
+            f'Player 2 - Moves: {self.game_controller.moves_made[2]}, Captures: {player2_captures}', True,
+            (255, 255, 255))
         self.screen.blit(player2_stats_surface, (110, 260))
+
+        avg_move_time_p1 = self.game_controller.calculate_average_move_time(1)
+        avg_move_time_p2 = self.game_controller.calculate_average_move_time(2)
+
+        # Draw the text for average move time for each player
+        font_stats = pygame.font.Font(None, 54)  # Adjust size as needed
+        avg_move_time_surface_p1 = font_stats.render(f'Player 1 Avg Move Time: {avg_move_time_p1:.2f}s', True,
+                                                     (255, 255, 255))
+        avg_move_time_surface_p2 = font_stats.render(f'Player 2 Avg Move Time: {avg_move_time_p2:.2f}s', True,
+                                                     (255, 255, 255))
+
+        # Adjust positioning as necessary
+        self.screen.blit(avg_move_time_surface_p1, (110, 310))
+        self.screen.blit(avg_move_time_surface_p2, (110, 360))
 
         pygame.display.flip()
 
-    def draw_ai_options(self, y_start, is_second_ai):
+    def draw_ai_options(self, y_start, x_start, is_second_ai):
         # Function to draw AI type and difficulty options
         label = 'AI 2 Type:' if is_second_ai else 'AI Type:'
         ai_label_surface = self.font.render(label, True, (255, 255, 255))
-        self.screen.blit(ai_label_surface, (self.window_size[0] // 3 - 100, y_start))
+        self.screen.blit(ai_label_surface, (x_start - 100, y_start))
         y_start += 50
 
         for ai_type in self.ai_types:
             current_ai_type = self.current_ai_type_2 if is_second_ai else self.current_ai_type
             color = (255, 255, 0) if ai_type == current_ai_type else (255, 255, 255)
             text_surface = self.font.render(ai_type, True, color)
-            rect = text_surface.get_rect(center=(self.window_size[0] // 3, y_start))
+            rect = text_surface.get_rect(center=(x_start, y_start))
             self.screen.blit(text_surface, rect)
             y_start += 50
 
         if not is_second_ai:
             label = 'Difficulty:'
             difficulty_label_surface = self.font.render(label, True, (255, 255, 255))
-            self.screen.blit(difficulty_label_surface, (2 * self.window_size[0] // 3 - 100, y_start))
+            self.screen.blit(difficulty_label_surface, (2 * x_start - 100, y_start))
             y_start += 50
 
             for difficulty in self.difficulties:
                 color = (255, 255, 0) if difficulty == self.current_difficulty else (255, 255, 255)
                 text_surface = self.font.render(difficulty, True, color)
-                rect = text_surface.get_rect(center=(2 * self.window_size[0] // 3, y_start))
+                rect = text_surface.get_rect(center=(2 * x_start, y_start))
                 self.screen.blit(text_surface, rect)
                 y_start += 50
 
@@ -193,7 +209,7 @@ class GUI:
         y_start = 100 + len(self.game_modes) * 50
 
         # AI Type selection for first AI or only AI
-        ai_type_index = (pos[1] - y_start) // 50
+        ai_type_index = (pos[1] - y_start) // 48  - 1
         if 0 <= ai_type_index < len(self.ai_types):
             if self.current_game_mode != 'AI vs AI':
                 self.current_ai_type = self.ai_types[ai_type_index]
@@ -205,7 +221,7 @@ class GUI:
                     self.current_ai_type_2 = self.ai_types[ai_type_index]
 
         # Difficulty selection
-        difficulty_index = (pos[1] - (y_start + len(self.ai_types) * 50)) // 50
+        difficulty_index = (pos[1] - (y_start + len(self.ai_types) * 50)) // 50 - 1
         if 0 <= difficulty_index < len(self.difficulties):
             self.current_difficulty = self.difficulties[difficulty_index]
 
@@ -222,7 +238,7 @@ class GUI:
 
         # Represent current player with a piece color
         player_piece_color = (0, 0, 255) if self.game_controller.current_player == 1 else (
-        255, 255, 0)  # Blue for Player 1, Yellow for Player 2
+            255, 255, 0)  # Blue for Player 1, Yellow for Player 2
         pygame.draw.circle(self.screen, player_piece_color, (450, self.grid_size * self.cell_size + 30), 15)
         player_text_surface = self.font.render("Player's Turn", True, (0, 0, 0))
         self.screen.blit(player_text_surface, (270, self.grid_size * self.cell_size + 10))
@@ -261,9 +277,7 @@ class GUI:
         # if no duration, don't wait and don't flip the display
         if duration > 0:
             pygame.display.flip()  # updating the display to show the highlight move
-            #pygame.time.wait(duration)
-
-
+            # pygame.time.wait(duration)
 
     def update_game_state(self, row, col, player):
         if len(self.game_state.board[row][col]) >= 5:
@@ -348,5 +362,3 @@ class GUI:
                 self.draw_timer()
             pygame.display.flip()
         pygame.quit()
-
-

@@ -1,3 +1,5 @@
+import time
+
 import pygame
 from game_state import GameState
 from game_controller import GameController
@@ -10,14 +12,17 @@ class GUI:
         self.window_size = (1000, 900)
         self.ai_types = ['MiniMax', 'AlphaBeta', 'MCTS', 'Variation of MCTS']
         self.game_modes = ['Human vs Human', 'Human vs AI', 'AI vs AI']
-        self.current_game_mode = 'Human vs AI'
+        self.current_game_mode = 'AI vs AI'
         self.difficulties = ['Easy', 'Medium', 'Hard']
         self.current_ai_type = 'MiniMax'  # Default AI type for player 1
         self.current_ai_type_2 = 'MiniMax'  # Default AI type for player 2, used in AI vs AI
-        self.current_difficulty = 'Medium'
+        self.current_difficulty = 'Hard'
         self.screen = pygame.display.set_mode(self.window_size)
         self.game_controller = GameController(self.game_state, self)
         self.cell_size = 100
+        self.game_ended = False
+        self.game_started = False
+        self.start_time = time.time()
         self.tip_algorithms = ['MiniMax', 'AlphaBeta', 'MCTS', 'Variation of MCTS']
         self.current_tip_algorithm_index = 0
         self.grid_size = self.game_state.board_size
@@ -26,7 +31,24 @@ class GUI:
         self.font = pygame.font.Font(None, 36)
         self.draw_board()
 
+    def reset_game(self):
+        # Reinitialize game state
+        self.game_state = GameState(board_size=8)  # Assuming board size is constant, adjust if necessary
+        self.game_controller = GameController(self.game_state, self)
+
+        # Reset other relevant variables
+        self.game_ended = False
         self.game_started = False
+        self.start_time = time.time()
+
+        # Optionally, reset any other variables or states here
+
+        # Redraw the board to reflect the reset state
+        self.draw_board()
+
+        # Restart the game loop
+        self.main_loop()
+
 
     def draw_board(self):
         bottom_left = (self.grid_size - 1, 0)
@@ -66,6 +88,13 @@ class GUI:
 
         self.draw_control_panel(self.game_controller.current_player, self.game_controller.score)
         self.draw_info_panel(self.game_controller.current_player, self.game_controller.score)
+        self.draw_timer()
+
+    def draw_timer(self):
+        if not self.game_ended:  # Only update the timer if the game hasn't ended
+            elapsed_time = int(time.time() - self.start_time)
+            timer_text_surface = self.font.render(f'Time: {elapsed_time}s', True, (0, 255, 0))
+            self.screen.blit(timer_text_surface, (self.window_size[0] - self.info_panel_width + 10, 130))
 
     def is_playable(self, row, col):
         non_playable_cells = [
@@ -100,6 +129,31 @@ class GUI:
 
 
         pygame.display.flip()  # Update the display to show the menu
+
+    def draw_game_end_block(self, winner):
+        end_game_rect = pygame.Rect(100, 100, 800, 700)
+        pygame.draw.rect(self.screen, (0, 0, 0), end_game_rect)
+        font = pygame.font.Font(None, 74)
+        text_surface = font.render(f'GAME ENDED - Winner: Player {winner}', True, (255, 0, 0))
+        self.screen.blit(text_surface, (110, 110))
+        elapsed_time = int(time.time() - self.start_time)
+        elapsed_time_surface = font.render(f'Time: {elapsed_time} seconds', True, (255, 255, 255))
+        self.screen.blit(elapsed_time_surface, (110, 160))
+
+        # Player stats including moves and captures
+        font_stats = pygame.font.Font(None, 54)  # Smaller font for stats
+
+        # Using the stack sizes at (6,7) and (6,0) for captures
+        player1_captures = len(self.game_state.board[6][7])
+        player2_captures = len(self.game_state.board[6][0])
+
+        player1_stats_surface = font_stats.render(f'Player 1 - Moves: {self.game_controller.moves_made[1]}, Captures: {player1_captures}', True, (255, 255, 255))
+        self.screen.blit(player1_stats_surface, (110, 210))
+
+        player2_stats_surface = font_stats.render(f'Player 2 - Moves: {self.game_controller.moves_made[2]}, Captures: {player2_captures}', True, (255, 255, 255))
+        self.screen.blit(player2_stats_surface, (110, 260))
+
+        pygame.display.flip()
 
     def draw_ai_options(self, y_start, is_second_ai):
         # Function to draw AI type and difficulty options
@@ -207,7 +261,7 @@ class GUI:
         # if no duration, don't wait and don't flip the display
         if duration > 0:
             pygame.display.flip()  # updating the display to show the highlight move
-            pygame.time.wait(duration)
+            #pygame.time.wait(duration)
 
 
 
@@ -253,6 +307,10 @@ class GUI:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:  # Check for ESC key
+                        self.reset_game()  # Reset and restart the game
+                        return
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
@@ -280,10 +338,14 @@ class GUI:
                     if self.game_started:
                         self.game_controller.handle_event(event)
 
+            if not self.game_ended and self.game_started:
+                self.game_ended = self.game_controller.check_game_end()
+
             # Only draw the start button and AI selection menu if the game has not started
             if not self.game_started:
                 self.draw_ai_selection_menu()
-
+            elif not self.game_ended:
+                self.draw_timer()
             pygame.display.flip()
         pygame.quit()
 

@@ -18,6 +18,8 @@ class GameController:
         self.tip_algorithms = ['MiniMax', 'AlphaBeta', 'MCTS', 'Variation of MCTS']
         self.suggestion_shown = False
         self.last_suggested_move = None
+        self.moves_made = {1: 0, 2: 0}  # Moves made by each player
+        self.pieces_captured = {1: 0, 2: 0}
 
     def set_player_types(self):
         # Update player types based on GUI selection
@@ -120,6 +122,7 @@ class GameController:
         self.game_state.board[row_s][col_s] = []
         self.game_state.redistribute_excess_pieces()
 
+
         self.gui.draw_board()
         pygame.display.flip()
 
@@ -135,6 +138,7 @@ class GameController:
 
             ai_move = ai.choose_move(self.game_state, self.current_player)
             if ai_move:
+                self.moves_made[self.current_player] += 1
                 src, dest = ai_move
                 src_row, src_col = src
                 dest_row, dest_col = dest
@@ -231,4 +235,54 @@ class GameController:
         stack = self.game_state.board[row][col]
         # Can select if the stack is not empty and the top piece belongs to the current player
         return bool(stack) and stack[-1] == self.current_player
+
+    def check_game_end(self):
+        # Logic to determine if the game has ended based on pieces on board and move possibility
+        if not self.has_valid_moves(1):
+            self.gui.draw_game_end_block(2)
+            self.gui.game_ended = True
+            return True
+        elif not self.has_valid_moves(2):
+            self.gui.draw_game_end_block(1)
+            self.gui.game_ended = True
+            return True
+        return False
+
+    def count_player_pieces(self):
+        player1_pieces = 0
+        player2_pieces = 0
+        for row in self.game_state.board:
+            for cell in row:
+                if cell:
+                    if cell[-1] == 1:
+                        player1_pieces += len(cell)
+                    else:
+                        player2_pieces += len(cell)
+        return player1_pieces, player2_pieces
+
+    def has_valid_moves(self, player_number):
+        valid_moves = []
+
+        for row in range(len(self.game_state.board)):
+            for col in range(len(self.game_state.board[row])):
+                if self.game_state.is_playable(row, col) and not (row, col) in [(6, 0), (6, 7)]:
+                    cell = self.game_state.board[row][col]
+                    if cell and cell[-1] == player_number:
+                        if self.can_make_a_move_from(row, col):
+                            return True  # Found at least one valid move
+        return False
+
+    def can_make_a_move_from(self, row, col):
+        stack = self.game_state.board[row][col]
+        stack_size = len(stack)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+
+        for dx, dy in directions:
+            new_row, new_col = row + dx * stack_size, col + dy * stack_size
+            if 0 <= new_row < len(self.game_state.board) and 0 <= new_col < len(self.game_state.board[0]):
+                if self.game_state.is_playable(new_row, new_col):
+                    return True  # Found a valid direction to move
+        return False
+
+
 

@@ -120,7 +120,7 @@ class AI:
         score += 20 * len(game_state.board[reserved_location[0]][reserved_location[1]])  # Value for each reserved piece
         score += 15 * len(
             game_state.board[captured_location[0]][captured_location[1]])  # Value for each captured opponent piece
-
+        score += random.uniform(-0.1, 0.1)
         return score
 
     # todo this has to be dynamic to support multiple board sizes

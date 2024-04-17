@@ -6,7 +6,6 @@ class GameState:
         self.board_size = board_size
         self.board = self.initialize_board()
 
-
     def initialize_board(self):
         board = [[[] for _ in range(self.board_size)] for _ in range(self.board_size)]
 
@@ -27,7 +26,7 @@ class GameState:
 
     def make_move(self, move, player_number):
         src, dest = move
-        # print(f"{player_number} trying moving stack from {src} to {dest}.")
+        #print(f"{player_number} trying moving stack from {src} to {dest}.")
         src_row, src_col = src
         dest_row, dest_col = dest
         # check if the move is valid - top piece needs to belong to the player making the move
@@ -40,11 +39,7 @@ class GameState:
         return self
 
     def is_game_over(self):
-        # TODO finish this
-        for player_number in [1, 2]:
-            if not self.get_legal_moves(player_number):
-                return True
-        return False  # If both players can still move, the game is not over.
+        return not (self.has_valid_moves(1) or self.has_valid_moves(2))
 
     def get_legal_moves(self, player_number):
         valid_moves = []
@@ -120,5 +115,50 @@ class GameState:
                         if len(self.board[dest[0]][dest[1]]) > 5:
                             self.board[dest[0]][dest[1]] = self.board[dest[0]][dest[1]][-5:]
 
+    def get_result(self, player_number):
+        print("GETTING RESULT FOR " + str(player_number) + "")
+        """
+        Evaluates the game result from the perspective of the given player number.
+        Returns 1 for a win, -1 for a loss, and 0 for a draw or if the game is still ongoing.
+        """
+        # If the current player has no valid moves, they lose
+        if not self.has_valid_moves(player_number):
+            return -1
+
+        # Check if the opponent has no valid moves
+        opponent = 2 if player_number == 1 else 1
+        if not self.has_valid_moves(opponent):
+            return 1
+
+        # If the game is over (maybe there's a method or logic to determine this),
+        # and neither player is in a win/loss condition, it's a draw
+        if self.is_game_over():
+            return 0  # Assuming a draw or game still in progress
+
+        # If game is not over, return 0 to indicate the game is still ongoing
+        return 0
 
 
+
+    def has_valid_moves(self, player_number):
+        valid_moves = []
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+                if self.is_playable(row, col) and not (row, col) in [(6, 0), (6, 7)]:
+                    cell = self.board[row][col]
+                    if cell and cell[-1] == player_number:
+                        if self.can_make_a_move_from(row, col):
+                            return True  # Found at least one valid move
+        return False
+
+    def can_make_a_move_from(self, row, col):
+        stack = self.board[row][col]
+        stack_size = len(stack)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+
+        for dx, dy in directions:
+            new_row, new_col = row + dx * stack_size, col + dy * stack_size
+            if 0 <= new_row < len(self.board) and 0 <= new_col < len(self.board[0]):
+                if self.is_playable(new_row, new_col):
+                    return True  # Found a valid direction to move
+        return False

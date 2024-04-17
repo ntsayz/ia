@@ -41,7 +41,6 @@ class GUI:
         self.game_started = False
         self.start_time = time.time()
 
-        # Optionally, reset any other variables or states here
 
         # Redraw the board to reflect the reset state
         self.draw_board()

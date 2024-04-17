@@ -1,6 +1,8 @@
 import random
 import math
 
+from mcts import MCTSNode
+
 
 class AI:
     def __init__(self, strategy='MiniMax', difficulty='Medium'):
@@ -17,7 +19,7 @@ class AI:
             print("AlphaBeta strategy ", player_number)
             return self.choose_minimax_move(game_state, player_number, use_alpha_beta=True)
         elif self.strategy == 'MCTS':
-            return self.choose_mcts_move(game_state, player_number)
+            return self.mcts(game_state, player_number)
         elif self.strategy == 'Variation of MCTS':
             return self.choose_mcts_variant_move(game_state, player_number)
         else:
@@ -31,22 +33,72 @@ class AI:
             game_state_copy.make_move(move,
                                       player_number)
             if use_alpha_beta:
-                eval = self.minimax_alpha_beta(game_state_copy, self.max_depth, player_number, -math.inf, math.inf, True)
+                eval = self.minimax_alpha_beta(game_state_copy, self.max_depth, player_number, -math.inf, math.inf,
+                                               True)
             else:
-                eval = self.minimax(game_state_copy,self.max_depth, player_number,True)
+                eval = self.minimax(game_state_copy, self.max_depth, player_number, True)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
         return best_move
 
-    def choose_mcts_move(self, game_state, player_number):
-        # Placeholder for Monte Carlo Tree Search algorithm
-        # You will replace this with the actual MCTS implementation
-        return random.choice(self.get_valid_moves(game_state, player_number))[0]
+    def mcts(self, game_state, player_number):
+        root_node = MCTSNode(game_state=game_state, player_number=player_number)
+        for iteration in range(100):
+            print(f"Iteration: {iteration + 1}")
+            node = root_node
+            state = game_state.copy()
+
+            # Selection
+            steps = 0
+            while not node.is_terminal_node() and node.untried_moves == []:
+                node = node.select_child()
+                state = state.make_move(node.move, player_number)
+                steps += 1
+            print(f"  Selection ended after {steps} steps.")
+
+            # Expansion
+            if node.untried_moves:
+                print("  Expansion step.")
+                node = node.expand()
+
+            # Simulation
+            simulation_steps = 0
+            while  simulation_steps < 600:
+                possible_moves = self.get_valid_moves(state, player_number)
+                if not possible_moves:
+                    break  # Exit the simulation loop, as no further moves can be made
+                move = random.choice(possible_moves)
+                state = state.make_move(move, player_number)
+                simulation_steps += 1
+            print(f"  Simulation ended after {simulation_steps} steps.")
+
+            # Backpropagation
+            backprop_steps = 0
+            result = state.get_result(player_number)
+            while node is not None:
+                effective_result = result if node.player_number == player_number else -result
+                node.update(effective_result)
+                node = node.parent
+                backprop_steps += 1
+            print(f"  Backpropagation updated {backprop_steps} nodes.")
+
+        if root_node.children:
+            best_move = max(root_node.children, key=lambda c: c.wins / c.visits).move  # Updated to also consider visits
+            print(f"Best move chosen from root: {best_move}")
+            return best_move
+        else:
+            print("No children nodes were expanded, choosing a random or default move.")
+            possible_moves = self.get_valid_moves(game_state, player_number)
+            if possible_moves:
+                return random.choice(possible_moves)  # Choose a random move if possible
+            else:
+                return None
+
+
 
     def choose_mcts_variant_move(self, game_state, player_number):
-        # Placeholder for a variant of the MCTS algorithm
-        # This could be an implementation with different exploration/exploitation balance, etc.
+
         return random.choice(self.get_valid_moves(game_state, player_number))[0]
 
     def minimax(self, game_state, depth, player_number, maximizing_player):
@@ -71,7 +123,8 @@ class AI:
                 min_eval = min(min_eval, eval)
             return min_eval
 
-    def minimax_alpha_beta(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf, maximizing_player=True):
+    def minimax_alpha_beta(self, game_state, depth, player_number, alpha=-math.inf, beta=math.inf,
+                           maximizing_player=True):
         if depth == 0 or game_state.is_game_over():
             return self.evaluate_state(game_state, player_number)
 
@@ -171,3 +224,80 @@ class AI:
             (7, 0), (7, 1), (7, 6), (7, 7)
         ]
         return (row, col) not in non_playable_cells
+
+    def simulate_with_heuristic(self, state, player_number):
+        simulation_steps = 0
+        while not state.is_game_over() and simulation_steps < 200:  # Limiting steps for safety
+            possible_moves = self.get_valid_moves(state, player_number)
+            if not possible_moves:
+                break  # No more moves available
+
+            # Evaluate each move with the heuristic
+            move_scores = []
+            for move in possible_moves:
+                simulated_state = state.copy().make_move(move, player_number)
+                score = self.evaluate_state(simulated_state, player_number)
+                move_scores.append((score, move))
+
+            # Normalize scores to probabilities
+            max_score = max(move_scores, key=lambda x: x[0])[0]
+            probabilities = [math.exp(score - max_score) for score, _ in move_scores]
+            total = sum(probabilities)
+            probabilities = [p / total for p in probabilities]
+
+            # Select move based on biased probability
+            move = random.choices([move for _, move in move_scores], weights=probabilities, k=1)[0]
+            state = state.make_move(move, player_number)
+
+            simulation_steps += 1
+            player_number = 3 - player_number  # Switch player
+
+
+
+"""
+    def mcts(self, game_state, player_number):
+        root_node = MCTSNode(game_state=game_state, player_number=player_number)
+        for iteration in range(10):
+            print(f"Iteration: {iteration + 1}")
+            node = root_node
+            state = game_state.copy()
+
+            # Selection
+            steps = 0
+            while not node.is_terminal_node() and node.untried_moves == []:
+                node = node.select_child()
+                state = state.make_move(node.move, player_number)
+                steps += 1
+            print(f"  Selection ended after {steps} steps.")
+
+            # Expansion
+            if node.untried_moves:
+                print("  Expansion step.")
+                node = node.expand()
+
+            # Simulation
+            self.simulate_with_heuristic(state, player_number)
+
+            # Backpropagation
+            backprop_steps = 0
+            result = state.get_result(player_number)
+            while node is not None:
+                effective_result = result if node.player_number == player_number else -result
+                node.update(effective_result)
+                node = node.parent
+                backprop_steps += 1
+            print(f"  Backpropagation updated {backprop_steps} nodes.")
+
+        if root_node.children:
+            best_move = max(root_node.children, key=lambda c: c.wins / c.visits).move  # Updated to also consider visits
+            print(f"Best move chosen from root: {best_move}")
+            return best_move
+        else:
+            print("No children nodes were expanded, choosing a random or default move.")
+            possible_moves = self.get_valid_moves(game_state, player_number)
+            if possible_moves:
+                return random.choice(possible_moves)  # Choose a random move if possible
+            else:
+                return None
+
+"""

@@ -25,17 +25,14 @@ class GameController:
         self.move_times = {1: [], 2: []}
 
     def set_player_types(self):
-        # Update player types based on GUI selection
         mode = self.gui.current_game_mode
         if mode == 'Human vs Human':
-            self.players = {1: 'Human', 2: 'Human'}
-            self.is_human = True
+            self.is_human = {1: True, 2: True}
         elif mode == 'Human vs AI':
-            self.players = {1: 'Human', 2: 'AI'}
+            self.is_human = {1: True, 2: False}
             self.ai_player_2 = AI(strategy=self.gui.current_ai_type, difficulty=self.gui.current_difficulty)
-
         elif mode == 'AI vs AI':
-            self.players = {1: 'AI', 2: 'AI'}
+            self.is_human = {1: False, 2: False}
             self.ai_player_1 = AI(strategy=self.gui.current_ai_type, difficulty=self.gui.current_difficulty)
             self.ai_player_2 = AI(strategy=self.gui.current_ai_type_2, difficulty=self.gui.current_difficulty)
 
@@ -46,11 +43,13 @@ class GameController:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     # Cycle through algorithms upwards
-                    self.gui.current_tip_algorithm_index = (self.gui.current_tip_algorithm_index - 1) % len(self.tip_algorithms)
+                    self.gui.current_tip_algorithm_index = (self.gui.current_tip_algorithm_index - 1) % len(
+                        self.tip_algorithms)
                     self.gui.draw_info_panel(self.current_player, self.score)
                 elif event.key == pygame.K_DOWN:
                     # Cycle through algorithms downwards
-                    self.gui.current_tip_algorithm_index = (self.gui.current_tip_algorithm_index + 1) % len(self.tip_algorithms)
+                    self.gui.current_tip_algorithm_index = (self.gui.current_tip_algorithm_index + 1) % len(
+                        self.tip_algorithms)
                     self.gui.draw_info_panel(self.current_player, self.score)
                 elif event.key == pygame.K_s:
                     self.show_move_suggestion()
@@ -183,14 +182,17 @@ class GameController:
     def switch_player(self):
         self.current_player = 1 if self.current_player == 2 else 2
 
-
         # Debug print to trace player switching
         print(f"Player switched to {self.current_player}")
 
-        if not self.is_human:
+        # Check if the current player is not human before proceeding with AI turn
+        if not self.is_human[self.current_player]:
+            print(f"Player {self.current_player} HHH")
             # AI turn check and handling
             if (self.current_player == 1 and self.ai_player_1) or (self.current_player == 2 and self.ai_player_2):
                 self.check_and_handle_ai_turn()
+        else:
+            print(f"Player {self.current_player} is human.")
 
     def is_ai_vs_ai_mode(self):
         return self.players[1] == 'AI' and self.players[2] == 'AI'
@@ -274,7 +276,6 @@ class GameController:
 
     def has_valid_moves(self, player_number):
         valid_moves = []
-
         for row in range(len(self.game_state.board)):
             for col in range(len(self.game_state.board[row])):
                 if self.game_state.is_playable(row, col) and not (row, col) in [(6, 0), (6, 7)]:

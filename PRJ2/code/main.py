@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load data
-data = pd.read_csv("./dataset/nasa.csv")
+data = pd.read_csv("../dataset/nasa.csv")
 
 # Basic info
 #print(data.info())

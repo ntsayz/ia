@@ -7,24 +7,25 @@ import seaborn as sns
 import numpy as np
 import time
 
-source_folder = '../processed_dataset/'
-dest_folder = '../processed_dataset/'
+source_folder = '../dataset/'
+dest_folder = '../dataset/training/'
+dest_folder_test = '../dataset/testing/'
 # Load the dataset
-data = pd.read_csv(source_folder + 'clean_dataset.csv')
+data = pd.read_csv(source_folder + 'processed_dataset.csv')
 
 
-# Initial preprocessing to convert dates to a processable format or extract useful components
+# converting dates to a processable format or extract useful components
 data['Close Approach Date'] = pd.to_datetime(data['Close Approach Date']).astype(int) / 10**9
 data['Orbit Determination Date'] = pd.to_datetime(data['Orbit Determination Date']).astype(int) / 10**9
 
-# Splitting the dataset into features and the target variable
+# features and the target variable
 X = data.drop('Hazardous', axis=1)  # Features
 y = data['Hazardous']  # Target variable
 start_time = time.time()
-# Split the data into a 70% training set and a 30% testing set
+# Splitting the data into a 70% training set and a 30% testing set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
 
-# Using Random Forest to determine feature importance
+# Random Forest to determine feature importance
 forest = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
 print("Starting model training...")
 forest.fit(X_train, y_train)
@@ -50,8 +51,8 @@ plt.xlabel('Relative Importance')
 plt.show()
 
 
-# Optionally, you might want to create a model with selected features only
-sfm = SelectFromModel(forest, threshold='median')  # Selecting features which have importance greater than the median
+# model with the selected features only
+sfm = SelectFromModel(forest, threshold='median') 
 sfm.fit(X_train, y_train)
 selected_features = X_train.columns[sfm.get_support()]
 
@@ -67,8 +68,8 @@ print(f"Model Select Operation took {time.time() - start_time} seconds")
 print("Saving transformed datasets to CSV files...")
 pd.DataFrame(X_train_reduced, columns=selected_features).to_csv( dest_folder + 'train_features_reduced.csv', index=False)
 pd.DataFrame(y_train).to_csv(dest_folder + 'train_labels.csv', index=False)
-pd.DataFrame(X_test_reduced, columns=selected_features).to_csv(dest_folder + 'test_features_reduced.csv', index=False)
-pd.DataFrame(y_test).to_csv(dest_folder+ 'test_labels.csv', index=False)
+pd.DataFrame(X_test_reduced, columns=selected_features).to_csv(dest_folder_test + 'test_features_reduced.csv', index=False)
+pd.DataFrame(y_test).to_csv(dest_folder_test + 'test_labels.csv', index=False)
 
 
 print(f"All processes completed. Total duration: {time.time() - start_time:.2f} seconds")

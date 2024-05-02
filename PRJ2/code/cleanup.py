@@ -21,13 +21,11 @@ cols_to_drop = [
 
 data.drop(columns=cols_to_drop, inplace=True)
 
-# check for any missing values
 print("Missing values per column:\n", data.isnull().sum())
 
-# Fill missing values if there are any, example:
-#data.fillna(data.mean(), inplace=True)  # This fills missing numeric values with the mean of their columns
 
-# Save the cleaned data
+
+
 cleaned_data_path = '../processed_dataset/clean_dataset.csv'
 data.to_csv(cleaned_data_path, index=False)
 
